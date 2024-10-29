@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Calculator - SSPU</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #1a237e;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #1a237e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0d1757;
+        }
+
+        .warning {
+            text-align: center;
+            color: red;
+            font-size: 24px;
+            font-weight: bold;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .education-content {
+            line-height: 1.6;
+        }
+
+        .education-content ul {
+            padding-left: 20px;
+        }
+
+        .chart-container {
+            margin-top: 20px;
+            height: 400px;
+        }
+
+        #warningPage {
+            margin-top: 100px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="container">
+        <h1>Symbiosis Skills and Professional University</h1>
+        <h2>Attendance Calculator</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="prn">PRN</label>
+                <input type="text" id="prn" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="department">Department</label>
+                <select id="department" required>
+                    <option value="">Select Department</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    <option value="Electrical Engineering">Electrical Engineering</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
+                    <option value="Information Technology">Information Technology</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <!-- Warning Page -->
+    <div id="warningPage" class="container hidden">
+        <div class="warning">
+            <p>⚠️ YOU HAVE BEEN HACKED! ⚠️</p>
+        </div>
+    </div>
+
+    <!-- Education Page -->
+    <div id="educationPage" class="container hidden">
+        <h2>Phishing Awareness Education</h2>
+        <div class="education-content">
+            <p>Don't worry! This was a safe demonstration to teach about phishing attacks.</p>
+            <p>Key lessons to remember:</p>
+            <ul>
+                <li>Always verify the website URL before entering credentials</li>
+                <li>Be cautious of unexpected requests for personal information</li>
+                <li>Check for secure connection (https://) when sharing sensitive data</li>
+                <li>Legitimate websites rarely ask for passwords through email links</li>
+                <li>When in doubt, contact your institution's IT department</li>
+            </ul>
+        </div>
+        <button onclick="showStatistics()">I Have Understood</button>
+    </div>
+
+    <!-- Statistics Page -->
+    <div id="statisticsPage" class="container hidden">
+        <h2>Phishing Awareness Statistics</h2>
+        <p>Number of students who participated in this awareness exercise by department:</p>
+        <div class="chart-container">
+            <canvas id="statsChart"></canvas>
+        </div>
+        <button onclick="showLoginPage()">Return to Login Page</button>
+    </div>
+
+    <script>
+        // Store submitted data
+        let submittedData = [];
+        let chart = null;
+
+        // Page navigation functions
+        function showPage(pageId) {
+            document.querySelectorAll('.container').forEach(container => {
+                container.classList.add('hidden');
+            });
+            document.getElementById(pageId).classList.remove('hidden');
+        }
+
+        function showWarning() {
+            showPage('warningPage');
+            setTimeout(() => {
+                showPage('educationPage');
+            }, 3000);
+        }
+
+        function showStatistics() {
+            showPage('statisticsPage');
+            updateChart();
+        }
+
+        function showLoginPage() {
+            showPage('loginPage');
+        }
+
+        // Handle form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                prn: document.getElementById('prn').value,
+                email: document.getElementById('email').value,
+                department: document.getElementById('department').value,
+                password: document.getElementById('password').value
+            };
+
+            submittedData.push(formData);
+            this.reset();
+            showWarning();
+        });
+
+        // Update chart function
+        function updateChart() {
+            const departments = ['Computer Science', 'Mechanical Engineering', 'Electrical Engineering', 
+                               'Civil Engineering', 'Information Technology'];
+            
+            const departmentCounts = departments.map(dept => {
+                return submittedData.filter(data => data.department === dept).length;
+            });
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: departments,
+                    datasets: [{
+                        label: 'Number of Students',
+                        data: departmentCounts,
+                        backgroundColor: 'rgba(26, 35, 126, 0.7)',
+                        borderColor: 'rgba(26, 35, 126, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
